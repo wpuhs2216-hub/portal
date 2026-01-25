@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm ci:*)",
+      "Bash(npm run lint)",
+      "Bash(npx next lint)",
+      "Bash(npm run build:*)",
+      "Bash(test:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run deploy:*)",
+      "Bash(npm init:*)",
+      "Bash(ssh:*)",
+      "Bash(curl -s https://egshugy.com/)",
+      "Bash(curl:*)",
+      "Bash(nslookup:*)",
+      "Bash(ping:*)",
+      "Bash(npm run purge-cache:*)"
+    ]
+  }
+}
