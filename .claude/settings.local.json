@@ -14,7 +14,13 @@
       "Bash(curl:*)",
       "Bash(nslookup:*)",
       "Bash(ping:*)",
-      "Bash(npm run purge-cache:*)"
+      "Bash(npm run purge-cache:*)",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx tsx:*)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\wpuhs\\projects\\chinchiro\\src\\components\\modals"
     ]
   }
 }
