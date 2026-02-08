@@ -24,7 +24,12 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.tsdocs/
+next-env.d.ts
+
+# Windows reserved device names
+nul
+
+docs/
 .gemini/
 .env.local
 node_modules/
