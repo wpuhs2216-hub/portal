@@ -1,0 +1,46 @@
+# portal プロジェクトルール
+
+## プロジェクト概要
+えぐしゅぎ ラボ のポータルサイト（各ゲームアプリ・SNSリンク集）
+
+## 技術スタック
+- フレームワーク: Next.js 16 (App Router, 静的エクスポート)
+- 言語: TypeScript
+- UI: React 19 + Tailwind CSS 4 + shadcn/ui (new-york スタイル)
+- CDN: Cloudflare
+
+## デプロイ
+- ビルド: `npm run build` → `out/` に静的サイト生成
+- デプロイ: `npm run deploy`（SFTP アップロード + Cloudflare キャッシュパージ）
+- キャッシュパージのみ: `npm run purge-cache`
+- デプロイ先: `S:\html\` (Webルート) = サーバーの `/var/www/html`
+- URL: `http://192.168.0.77/` (ルート)
+
+### ポータルからの子アプリリンク構成
+- `/chinchiro/` → チンチロ
+- `/word-wolf/` → ワードウルフ
+- `/kingscup/` → キングスカップ
+- `/stamps/` → LINE スタンプ（portal自身のサブページ）
+
+## ディレクトリ構成
+- `app/` - Next.js ページ（トップ、stamps）
+- `components/` - Reactコンポーネント
+- `components/ui/` - shadcn/ui コンポーネント群
+- `hooks/` - カスタムフック
+- `lib/` - ユーティリティ（cn関数等）
+- `scripts/` - デプロイ・キャッシュパージスクリプト
+
+## コーディング規約
+### コンポーネント追加時
+- [ ] shadcn/ui コンポーネントは `npx shadcn@latest add <component>` で追加
+- [ ] パスエイリアス `@/*` を使用（ルートからの相対パス）
+- [ ] アイコンは `lucide-react` を使用
+
+### 新しいアプリリンク追加時
+- [ ] `components/featured-apps.tsx` の `apps` 配列にエントリを追加
+
+### 壊さないガード（必須遵守）
+- `next.config.ts` の `output: "export"` を変更しない
+- 既存のゲームアプリへのリンクパス（`/chinchiro/`, `/word-wolf/`, `/kingscup/`）を変更しない
+- Cloudflare APIトークンをコードにハードコードしない
+- ポータルは Web ルートにデプロイされるため `basePath` は設定しない
