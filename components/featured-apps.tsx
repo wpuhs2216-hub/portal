@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronRight, Dice5, Dog, Crown } from "lucide-react"
+import { ChevronRight, Dice5, Dog, Crown, Ban, Flame, Train, Spade } from "lucide-react"
 
 const apps = [
   {
@@ -23,6 +23,34 @@ const apps = [
     icon: Crown,
     color: "from-amber-500 to-orange-500",
     href: "/kingscup/",
+    comingSoon: false
+  },
+  {
+    name: "NGワード",
+    icon: Ban,
+    color: "from-red-500 to-rose-500",
+    href: "/ng-word/",
+    comingSoon: false
+  },
+  {
+    name: "真実か挑戦か",
+    icon: Flame,
+    color: "from-yellow-500 to-amber-500",
+    href: "/truth-or-dare/",
+    comingSoon: false
+  },
+  {
+    name: "山手線ゲーム",
+    icon: Train,
+    color: "from-emerald-500 to-green-500",
+    href: "/yamanote/",
+    comingSoon: false
+  },
+  {
+    name: "ブラックジャック",
+    icon: Spade,
+    color: "from-indigo-500 to-violet-500",
+    href: "/blackjack/",
     comingSoon: false
   },
 ]
