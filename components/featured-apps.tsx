@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronRight, Dice5, Dog, Crown, Ban, Flame, Train, Spade } from "lucide-react"
+import { ChevronRight, Dice5, Dog, Crown, Ban, Flame, Train, Spade, Users } from "lucide-react"
 
 const apps = [
   {
@@ -51,6 +51,13 @@ const apps = [
     icon: Spade,
     color: "from-indigo-500 to-violet-500",
     href: "/blackjack/",
+    comingSoon: false
+  },
+  {
+    name: "パーティー",
+    icon: Users,
+    color: "from-violet-500 to-fuchsia-500",
+    href: "/party/",
     comingSoon: false
   },
 ]
