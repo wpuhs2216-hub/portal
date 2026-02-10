@@ -1,24 +1,21 @@
 "use client"
 
-import Link from "next/link"
-import { ChevronRight, Play } from "lucide-react"
+import { useEffect } from 'react'
+import { ChevronRight } from "lucide-react"
 
-const videos = [
-  {
-    id: 1,
-    title: "AI制作の裏側",
-    platform: "TikTok",
-    thumbnail: null,
-  },
-  {
-    id: 2,
-    title: "新アプリ紹介",
-    platform: "Instagram",
-    thumbnail: null,
-  },
-]
+const TIKTOK_USERNAME = "diva_egshugy"
+const TIKTOK_PROFILE_URL = `https://www.tiktok.com/@${TIKTOK_USERNAME}`
 
 export function LatestVideo() {
+  useEffect(() => {
+    // TikTok埋め込みスクリプトを動的に読み込み
+    if (document.querySelector('script[src="https://www.tiktok.com/embed.js"]')) return
+    const script = document.createElement('script')
+    script.src = 'https://www.tiktok.com/embed.js'
+    script.async = true
+    document.body.appendChild(script)
+  }, [])
+
   return (
     <section className="py-6 px-4">
       {/* Section Header */}
@@ -27,43 +24,43 @@ export function LatestVideo() {
           <span>🎬</span>
           <span>Latest</span>
         </h2>
-        <Link 
-          href="#" 
+        <a
+          href={TIKTOK_PROFILE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           className="text-sm text-primary flex items-center gap-1 transition-colors hover:text-primary/80 active:scale-95"
         >
           See more
           <ChevronRight className="w-4 h-4" />
-        </Link>
+        </a>
       </div>
 
-      {/* Video Cards */}
-      <div className="flex flex-col gap-3">
-        {videos.map((video) => (
-          <a
-            key={video.id}
-            href="#"
-            className="group relative aspect-video rounded-xl bg-card overflow-hidden transition-all duration-150 active:scale-[0.98] hover:ring-2 hover:ring-primary/50"
-          >
-            {/* Placeholder Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20" />
-            
-            {/* Play Button Overlay */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-14 h-14 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center transition-transform group-hover:scale-110">
-                <Play className="w-6 h-6 text-primary ml-1" fill="currentColor" />
+      {/* TikTok クリエイター埋め込み */}
+      <div className="rounded-xl overflow-hidden">
+        <blockquote
+          className="tiktok-embed"
+          cite={TIKTOK_PROFILE_URL}
+          data-unique-id={TIKTOK_USERNAME}
+          data-embed-type="creator"
+          style={{ maxWidth: '100%', minWidth: '288px' }}
+        >
+          {/* スクリプト読み込み前のフォールバック */}
+          <section>
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href={TIKTOK_PROFILE_URL}
+              className="group flex items-center gap-4 w-full p-4 rounded-xl bg-secondary transition-all duration-150 active:scale-[0.98] hover:bg-secondary/80"
+            >
+              <span className="text-3xl">🎵</span>
+              <div className="flex-1">
+                <span className="text-foreground font-medium block">@{TIKTOK_USERNAME}</span>
+                <span className="text-muted-foreground text-xs block">TikTokで見る</span>
               </div>
-            </div>
-            
-            {/* Video Info Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-background/90 to-transparent">
-              <p className="text-foreground text-sm font-medium truncate">{video.title}</p>
-              <p className="text-muted-foreground text-xs">{video.platform}</p>
-            </div>
-            
-            {/* Border */}
-            <div className="absolute inset-0 rounded-xl ring-1 ring-white/10" />
-          </a>
-        ))}
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </a>
+          </section>
+        </blockquote>
       </div>
     </section>
   )

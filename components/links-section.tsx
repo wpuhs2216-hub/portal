@@ -1,6 +1,6 @@
 "use client"
 
-import { ShoppingCart, ShoppingBag, Monitor, Newspaper, ExternalLink } from "lucide-react"
+import { ShoppingCart, Monitor, ExternalLink } from "lucide-react"
 
 const links = [
   {
@@ -12,27 +12,11 @@ const links = [
     comingSoon: false
   },
   {
-    icon: ShoppingBag,
-    emoji: "🛍️",
-    label: "グッズショップ",
-    href: "#",
-    description: "オフィシャルグッズ",
-    comingSoon: true
-  },
-  {
     icon: Monitor,
     emoji: "🍻",
     label: "のみしゅぎ",
     href: "#",
     description: "飲み会アプリ",
-    comingSoon: true
-  },
-  {
-    icon: Newspaper,
-    emoji: "📰",
-    label: "Blog / News",
-    href: "#",
-    description: "最新情報",
     comingSoon: true
   },
 ]
