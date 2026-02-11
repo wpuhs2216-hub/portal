@@ -13,6 +13,18 @@ const notoSansJP = Noto_Sans_JP({
 export const metadata: Metadata = {
   title: 'えぐしゅぎ ラボ | AI Creator / Developer',
   description: 'えぐしゅぎ ラボ - AI Creator & Developer. Apps, Games, and Digital Content.',
+  openGraph: {
+    title: 'えぐしゅぎ ラボ | AI Creator / Developer',
+    description: 'えぐしゅぎ ラボ - AI Creator & Developer. Apps, Games, and Digital Content.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'えぐしゅぎ ラボ | AI Creator / Developer',
+    description: 'えぐしゅぎ ラボ - AI Creator & Developer. Apps, Games, and Digital Content.',
+    images: ['/og-image.png'],
+  },
   generator: 'v0.app',
   icons: {
     icon: [
@@ -31,6 +43,7 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-icon.png',
   },
+  manifest: '/manifest.json',
 }
 
 export const viewport: Viewport = {
@@ -51,6 +64,16 @@ export default function RootLayout({
       <body className={`${notoSansJP.variable} font-sans antialiased`}>
         {children}
         <Analytics />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`,
+          }}
+        />
+        <script
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon='{"token": "YOUR_CF_ANALYTICS_TOKEN"}'
+        />
       </body>
     </html>
   )

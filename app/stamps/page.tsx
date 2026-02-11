@@ -4,6 +4,18 @@ import { ArrowLeft, ExternalLink, ShoppingCart } from "lucide-react"
 export const metadata = {
     title: "LINE Stamps | えぐしゅぎ ラボ",
     description: "えぐしゅぎオリジナルのLINEスタンプ一覧",
+    openGraph: {
+        title: "LINE Stamps | えぐしゅぎ ラボ",
+        description: "えぐしゅぎオリジナルのLINEスタンプ一覧",
+        images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "LINE Stamps | えぐしゅぎ ラボ",
+        description: "えぐしゅぎオリジナルのLINEスタンプ一覧",
+        images: ["/og-image.png"],
+    },
 }
 
 const stamps = [
@@ -11,13 +23,13 @@ const stamps = [
         id: "32133217",
         title: "えぐしゅぎスタンプ Vol.1",
         url: "https://store.line.me/stickershop/product/32133217/ja",
-        image: "/placeholder-stamp-1.png", // Will use placeholder for now
+        image: "https://stickershop.line-scdn.net/stickershop/v1/product/32133217/LINEStorePC/main.png",
     },
     {
         id: "32211488",
         title: "えぐしゅぎスタンプ Vol.2",
         url: "https://store.line.me/stickershop/product/32211488/ja",
-        image: "/placeholder-stamp-2.png", // Will use placeholder for now
+        image: "https://stickershop.line-scdn.net/stickershop/v1/product/32211488/LINEStorePC/main.png",
     },
 ]
 
@@ -53,18 +65,12 @@ export default function StampsPage() {
                             className="group relative bg-card rounded-2xl overflow-hidden border border-border/50 hover:border-[#06C755]/50 transition-colors shadow-sm"
                         >
                             <div className="aspect-[4/3] bg-secondary/50 flex items-center justify-center relative overflow-hidden">
-                                {/* Visual Placeholder Pattern */}
-                                <div className="absolute inset-0 opacity-10"
-                                    style={{
-                                        backgroundImage: 'radial-gradient(#06C755 1px, transparent 1px)',
-                                        backgroundSize: '20px 20px'
-                                    }}
+                                <img
+                                    src={stamp.image}
+                                    alt={stamp.title}
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
                                 />
-
-                                <span className="text-4xl">🛒</span>
-
-                                {/* Overlay Gradient */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             </div>
 
                             <div className="p-4">
