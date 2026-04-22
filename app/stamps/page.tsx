@@ -47,7 +47,7 @@ export default function StampsPage() {
                 <h1 className="text-lg font-bold">LINE スタンプ</h1>
             </header>
 
-            <main className="container max-w-md mx-auto p-4 space-y-6">
+            <main className="container max-w-md md:max-w-2xl mx-auto p-4 space-y-6">
                 <div className="text-center py-4">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 mb-4">
                         <ShoppingCart className="w-8 h-8 text-[#06C755]" />
@@ -58,7 +58,7 @@ export default function StampsPage() {
                     </p>
                 </div>
 
-                <div className="grid gap-4">
+                <div className="grid md:grid-cols-2 gap-4">
                     {stamps.map((stamp) => (
                         <div
                             key={stamp.id}

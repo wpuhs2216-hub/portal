@@ -6,7 +6,7 @@ import { Footer } from "@/components/footer"
 
 export default function Home() {
   return (
-    <main className="min-h-screen max-w-md mx-auto">
+    <main className="min-h-screen max-w-md md:max-w-3xl mx-auto">
       <ProfileHeader />
       <FeaturedApps />
       <LinksSection />

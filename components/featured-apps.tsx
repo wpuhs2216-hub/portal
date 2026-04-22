@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronRight, Dice5, Dog, Crown, Ban, Flame, Train, Spade, Users, Heart, Shuffle, Brain, Sparkles } from "lucide-react"
+import { ChevronRight, Dice5, Dog, Crown, Ban, Flame, Train, Spade, Users, Heart, Shuffle, Brain, Sparkles, Skull, Hexagon } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 interface AppItem {
@@ -30,6 +30,7 @@ const categories: AppCategory[] = [
       { name: "山手線ゲーム", icon: Train, color: "from-emerald-500 to-green-500", href: "/yamanote/", comingSoon: false },
       { name: "ブラックジャック", icon: Spade, color: "from-indigo-500 to-violet-500", href: "/blackjack/", comingSoon: false },
       { name: "パーティー", icon: Users, color: "from-violet-500 to-fuchsia-500", href: "/party/", comingSoon: false },
+      { name: "6ボールパズル", icon: Hexagon, color: "from-sky-500 to-indigo-500", href: "/puzzle/", comingSoon: false },
     ],
   },
   {
@@ -40,6 +41,7 @@ const categories: AppCategory[] = [
       { name: "チーム分け", icon: Shuffle, color: "from-teal-500 to-cyan-500", href: "/team-maker/", comingSoon: false },
       { name: "性格診断", icon: Brain, color: "from-purple-500 to-indigo-500", href: "/personality/", comingSoon: false },
       { name: "あだ名メーカー", icon: Sparkles, color: "from-amber-500 to-yellow-500", href: "/nickname-gen/", comingSoon: false },
+      { name: "エグタイプ診断", icon: Skull, color: "from-pink-500 to-fuchsia-500", href: "/egtype/", comingSoon: false },
     ],
   },
 ]
@@ -49,7 +51,7 @@ function AppCard({ app }: { app: AppItem }) {
     <a
       key={app.name}
       href={app.comingSoon ? undefined : app.href}
-      className={`flex-shrink-0 w-[120px] group ${app.comingSoon ? "cursor-not-allowed" : ""}`}
+      className={`flex-shrink-0 w-[120px] md:w-auto md:flex-shrink md:flex-1 md:min-w-[100px] md:max-w-[160px] group ${app.comingSoon ? "cursor-not-allowed" : ""}`}
       onClick={app.comingSoon ? (e) => e.preventDefault() : undefined}
     >
       <div className={`relative aspect-square rounded-2xl bg-card overflow-hidden transition-all duration-150 ${app.comingSoon
@@ -102,7 +104,7 @@ export function FeaturedApps() {
           </div>
 
           {/* Horizontal Scrollable Cards */}
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide md:flex-wrap md:overflow-x-visible md:mx-0 md:px-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {category.apps.map((app) => (
               <AppCard key={app.name} app={app} />
             ))}

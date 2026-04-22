@@ -31,7 +31,7 @@ export function LinksSection() {
       </h2>
 
       {/* Link Buttons */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col md:grid md:grid-cols-2 gap-3">
         {links.map((link) => (
           <a
             key={link.label}
