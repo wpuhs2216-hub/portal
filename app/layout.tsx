@@ -1,13 +1,28 @@
 import React from "react"
 import type { Metadata, Viewport } from 'next'
-import { Noto_Sans_JP } from 'next/font/google'
+import { IBM_Plex_Sans_JP, IBM_Plex_Mono, Space_Grotesk } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const notoSansJP = Noto_Sans_JP({ 
+const ibmSansJP = IBM_Plex_Sans_JP({
   subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-noto-sans-jp',
+  weight: ['300', '400', '500', '700'],
+  variable: '--font-ibm-plex-sans-jp',
+  display: 'swap',
+})
+
+const ibmMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-ibm-plex-mono',
+  display: 'swap',
+})
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -61,7 +76,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className="dark">
-      <body className={`${notoSansJP.variable} font-sans antialiased`}>
+      <body className={`${ibmSansJP.variable} ${ibmMono.variable} ${spaceGrotesk.variable} font-sans antialiased`}>
         {children}
         <Analytics />
         <script
