@@ -171,7 +171,7 @@ export default function Home() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-6">
           <a
-            href="https://nomishugy.vercel.app/waitlist"
+            href="https://nomishugy.vercel.app/coming-soon"
             target="_blank"
             rel="noopener noreferrer"
             className="bg-[#0E1214] border border-[#1F2824] p-7 md:p-9 flex flex-col justify-between min-h-[340px] relative overflow-hidden hover:border-[#7CFF7C] hover:bg-[#151A1D] transition-colors group"
@@ -184,7 +184,7 @@ export default function Home() {
               </span>
               <h3 className="font-[var(--font-ibm-plex-sans-jp),sans-serif] font-bold text-[clamp(26px,4vw,36px)] leading-tight mb-3 tracking-tight">のみしゅぎ</h3>
               <p className="text-[#7F8A7F] text-sm leading-relaxed mb-6">
-                大阪ミナミのバーを探し、飲み仲間とマッチングする。夜の街のための新しいポータル&マッチングアプリ。
+                大阪ミナミの夜を、もっと楽しく。バー探しと飲み仲間を、ひとつのアプリで。
               </p>
             </div>
             <div className="flex gap-5 md:gap-6 pt-5 border-t border-dashed border-[#1F2824] flex-wrap text-[11px] text-[#7F8A7F] font-[var(--font-ibm-plex-mono),monospace]">
@@ -305,7 +305,7 @@ export default function Home() {
           </div>
           <div>
             <h5 className="text-[11px] text-[#7F8A7F] uppercase tracking-wider font-[var(--font-ibm-plex-mono),monospace] mb-3.5">// PRODUCTS</h5>
-            <a href="https://nomishugy.vercel.app/waitlist" target="_blank" rel="noopener noreferrer" className="block text-[13px] mb-2 hover:text-[#7CFF7C] transition-colors">のみしゅぎ</a>
+            <a href="https://nomishugy.vercel.app/coming-soon" target="_blank" rel="noopener noreferrer" className="block text-[13px] mb-2 hover:text-[#7CFF7C] transition-colors">のみしゅぎ</a>
             <a href="https://yorulog.vercel.app/waitlist" target="_blank" rel="noopener noreferrer" className="block text-[13px] mb-2 hover:text-[#7CFF7C] transition-colors">ヨルログ</a>
             <Link href="/egtype/" className="block text-[13px] mb-2 hover:text-[#7CFF7C] transition-colors">エグタイプ診断</Link>
           </div>
