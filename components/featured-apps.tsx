@@ -22,7 +22,7 @@ const categories: AppCategory[] = [
     label: "ゲーム",
     emoji: "🎮",
     apps: [
-      { name: "チンチロ", icon: Dice5, color: "from-purple-500 to-pink-500", href: "/chinchiro/", comingSoon: false },
+      { name: "ぺかりんのえぐしゅぎチンチロ", icon: Dice5, color: "from-purple-500 to-pink-500", href: "/pekarin-chinchiro/", comingSoon: false },
       { name: "ワードウルフ", icon: Dog, color: "from-cyan-500 to-blue-500", href: "/word-wolf/", comingSoon: false },
       { name: "キングスカップ", icon: Crown, color: "from-amber-500 to-orange-500", href: "/kingscup/", comingSoon: false },
       { name: "NGワード", icon: Ban, color: "from-red-500 to-rose-500", href: "/ng-word/", comingSoon: false },

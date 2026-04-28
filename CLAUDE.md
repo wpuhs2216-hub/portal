@@ -17,7 +17,8 @@
 - URL: `http://192.168.0.77/` (ルート)
 
 ### ポータルからの子アプリリンク構成
-- `/chinchiro/` → チンチロ
+- `/pekarin-chinchiro/` → ぺかりんのえぐしゅぎチンチロ（V4 最下位回避ロジック搭載の新版）
+- `/chinchiro/` → 旧チンチロ（バニラJS版、温存）
 - `/word-wolf/` → ワードウルフ
 - `/kingscup/` → キングスカップ
 - `/stamps/` → LINE スタンプ（portal自身のサブページ）
@@ -41,6 +42,6 @@
 
 ### 壊さないガード（必須遵守）
 - `next.config.ts` の `output: "export"` を変更しない
-- 既存のゲームアプリへのリンクパス（`/chinchiro/`, `/word-wolf/`, `/kingscup/`）を変更しない
+- 既存のゲームアプリへのリンクパス（`/pekarin-chinchiro/`, `/word-wolf/`, `/kingscup/`）を変更しない
 - Cloudflare APIトークンをコードにハードコードしない
 - ポータルは Web ルートにデプロイされるため `basePath` は設定しない

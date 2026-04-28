@@ -25,7 +25,7 @@ interface Experiment {
 const EXPERIMENTS: Experiment[] = [
   { id: "egtype", number: "// 001", ja: "エグタイプ診断", en: "EGTYPE — Personality Assessment", category: "Diagnostic", status: "active", href: "/egtype/" },
   { id: "wordwolf", number: "// 002", ja: "ワードウルフ", en: "WORD WOLF — Party Game", category: "Game", status: "active", href: "/word-wolf/" },
-  { id: "chinchiro", number: "// 003", ja: "チンチロ", en: "CHINCHIRO — Dice Game", category: "Game", status: "active", href: "/chinchiro/" },
+  { id: "chinchiro", number: "// 003", ja: "ぺかりんのえぐしゅぎチンチロ", en: "PEKARIN CHINCHIRO — Dice Game", category: "Game", status: "active", href: "/pekarin-chinchiro/" },
   { id: "kingscup", number: "// 004", ja: "キングスカップ", en: "KINGS CUP — Drinking Game", category: "Game", status: "active", href: "/kingscup/" },
   { id: "compat", number: "// 005", ja: "相性診断", en: "COMPATIBILITY — Relation Analyzer", category: "Diagnostic", status: "active", href: "/compatibility/" },
   { id: "nickname", number: "// 006", ja: "あだ名メーカー", en: "NICKNAME GEN — Identity Tool", category: "Tool", status: "active", href: "/nickname-gen/" },
