@@ -1,72 +1,58 @@
 import React from "react"
 import type { Metadata, Viewport } from 'next'
-import { IBM_Plex_Sans_JP, IBM_Plex_Mono, Space_Grotesk } from 'next/font/google'
+import { Noto_Sans_JP, Nunito, DM_Sans } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const ibmSansJP = IBM_Plex_Sans_JP({
+// 和文（見出し・本文とも）: Noto Sans JP（柔らかい丸ゴ寄り）
+const notoSansJP = Noto_Sans_JP({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '700'],
-  variable: '--font-ibm-plex-sans-jp',
+  weight: ['400', '500', '700', '900'],
+  variable: '--font-noto-sans-jp',
   display: 'swap',
 })
 
-const ibmMono = IBM_Plex_Mono({
+// マスコット見出し（ラテン）: Nunito Black（粘土風・ぷっくり）
+const nunito = Nunito({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-ibm-plex-mono',
+  weight: ['700', '800', '900'],
+  variable: '--font-nunito',
   display: 'swap',
 })
 
-const spaceGrotesk = Space_Grotesk({
+// 本文（ラテン）: DM Sans（読みやすく親しみのある幾何サンセリフ）
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-space-grotesk',
+  weight: ['400', '500', '700'],
+  variable: '--font-dm-sans',
   display: 'swap',
 })
 
 export const metadata: Metadata = {
-  title: 'えぐしゅぎ ラボ | AI Creator / Developer',
-  description: 'えぐしゅぎ ラボ - AI Creator & Developer. Apps, Games, and Digital Content.',
+  metadataBase: new URL('https://egshugy.com'),
+  title: 'エグキャラ — 16体のエグかわ妖精たち。',
+  description: 'エグキャラ公式サイト。自虐 × 妖精語 × 匂わせポエムで生まれた16体のエグかわキャラクター。エグタイプ診断で自分のエグキャラを見つけよう。ぺかりんのちんちろ・LINEスタンプも。',
+  // og:image / twitter:image は app/opengraph-image.tsx と app/twitter-image.tsx で自動生成
   openGraph: {
-    title: 'えぐしゅぎ ラボ | AI Creator / Developer',
-    description: 'えぐしゅぎ ラボ - AI Creator & Developer. Apps, Games, and Digital Content.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    title: 'エグキャラ — 16体のエグかわ妖精たち。',
+    description: '自虐 × 妖精語 × 匂わせポエムで生まれた16体のエグかわキャラクター。',
     type: 'website',
+    locale: 'ja_JP',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'えぐしゅぎ ラボ | AI Creator / Developer',
-    description: 'えぐしゅぎ ラボ - AI Creator & Developer. Apps, Games, and Digital Content.',
-    images: ['/og-image.png'],
+    title: 'エグキャラ — 16体のエグかわ妖精たち。',
+    description: '自虐 × 妖精語 × 匂わせポエムで生まれた16体のエグかわキャラクター。',
   },
   generator: 'v0.app',
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
-  },
+  // favicon / apple-touch-icon は app/icon.tsx と app/apple-icon.tsx で動的生成
   manifest: '/manifest.json',
 }
 
 export const viewport: Viewport = {
-  themeColor: '#0d0d0d',
+  themeColor: '#fff8f0',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 }
 
 export default function RootLayout({
@@ -75,19 +61,21 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ja" className="dark">
-      <body className={`${ibmSansJP.variable} ${ibmMono.variable} ${spaceGrotesk.variable} font-sans antialiased`}>
+    <html lang="ja">
+      <body className={`${notoSansJP.variable} ${nunito.variable} ${dmSans.variable} font-sans antialiased`}>
         {children}
         <Analytics />
+        {/* GA4（暫定で egtype と同一プロパティ G-J5KGMEKCF4 を流用。別プロパティ化は ID 差し替えのみ） */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-J5KGMEKCF4" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`,
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-J5KGMEKCF4');`,
           }}
         />
         <script
-          defer
-          src="https://static.cloudflareinsights.com/beacon.min.js"
-          data-cf-beacon='{"token": "YOUR_CF_ANALYTICS_TOKEN"}'
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(rs=>Promise.all(rs.map(r=>r.unregister()))).then(()=>caches.keys().then(ks=>Promise.all(ks.map(k=>caches.delete(k))))).then(()=>navigator.serviceWorker.register('/sw.js'))}`,
+          }}
         />
       </body>
     </html>

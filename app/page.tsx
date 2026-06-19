@@ -4,326 +4,789 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 
 /**
- * えぐしゅぎ・ラボ — Phosphor Terminal portal
+ * エグキャラ — egshugy.com root portal
  *
- * デザインシステム: ~/.gstack/projects/egshugy-lab/designs/.../portal.html
- * - ベース: 深黒 #07090B / 蛍光緑アクセント #7CFF7C
- * - フォント: Space Grotesk (英数) + IBM Plex Sans JP (日本語) + IBM Plex Mono (ラベル)
- * - レイアウト: editorial terminal（flat edges、mono 強調、// コメント装飾）
+ * デザイン言語: Egcharacter Clay (claymorphism)
+ * - 粘土風のぷっくりカード（二重影 .clay / ぷにっとホバー .clay-hover / 押下スクイッシュ .clay-btn）
+ * - 厚めボーダー(3px) + 大きめ角丸(2rem前後) + soft bounce イージング
+ * - 見出し: Nunito Black(ラテン) + Noto Sans JP / 本文: DM Sans + Noto Sans JP
+ * - 旧「ターミナル/モノスペース」の // コメント風ラベルは全廃（機械的な印象の排除）
+ *
+ * 構造:
+ * Hero(+キャラ帯) → NOW → CHARACTERS図鑑 → (PRODUCTS:flag) → (PLAYGROUND:flag) → ABOUT → SHOP → FOLLOW
+ *
+ * NOTE: NOXA / ヨルログ / のみしゅぎ の夜職プロダクト導線は SHOW_PRODUCTS で一旦非表示。
+ *       app/noxa/ ルート本体は残しているため /noxa/ への直URLアクセスは生きている。
  */
+
+// === 夜職プロダクト(NOXA系)導線の表示フラグ。false で全非表示、true で復活 ===
+const SHOW_PRODUCTS = false
+
+// === PLAYGROUND(汎用ゲーム・ツール)の表示フラグ。エグキャラ無関係のため一旦非表示 ===
+const SHOW_PLAYGROUND = false
+
+type ProductStatus = "live" | "soon" | "preview"
+type ExperimentCategory = "Diagnostic" | "Game" | "Tool"
+
+interface Character {
+  id: string
+  name: string
+  animal: string
+  theme: string
+  catchphrase: string
+  dangerRank: "S" | "A" | "B" | "C"
+}
 
 interface Experiment {
   id: string
-  number: string
   ja: string
   en: string
-  category: string
+  category: ExperimentCategory
   status: "active" | "beta" | "soon"
   href?: string
 }
 
-const EXPERIMENTS: Experiment[] = [
-  { id: "egtype", number: "// 001", ja: "エグタイプ診断", en: "EGTYPE — Personality Assessment", category: "Diagnostic", status: "active", href: "/egtype/" },
-  { id: "wordwolf", number: "// 002", ja: "ワードウルフ", en: "WORD WOLF — Party Game", category: "Game", status: "active", href: "/word-wolf/" },
-  { id: "chinchiro", number: "// 003", ja: "ぺかりんのえぐしゅぎチンチロ", en: "PEKARIN CHINCHIRO — Dice Game", category: "Game", status: "active", href: "/pekarin-chinchiro/" },
-  { id: "kingscup", number: "// 004", ja: "キングスカップ", en: "KINGS CUP — Drinking Game", category: "Game", status: "active", href: "/kingscup/" },
-  { id: "compat", number: "// 005", ja: "相性診断", en: "COMPATIBILITY — Relation Analyzer", category: "Diagnostic", status: "active", href: "/compatibility/" },
-  { id: "nickname", number: "// 006", ja: "あだ名メーカー", en: "NICKNAME GEN — Identity Tool", category: "Tool", status: "active", href: "/nickname-gen/" },
-  { id: "puzzle", number: "// 007", ja: "6 ボールパズル", en: "6-BALL PUZZLE — Logic Game", category: "Game", status: "beta", href: "/puzzle/" },
-  { id: "yamanote", number: "// 008", ja: "山手線ゲーム", en: "YAMANOTE — Word Challenge", category: "Game", status: "soon" },
-]
-
-const DATA = [
-  { label: "EXPERIMENTS", value: "8+", delta: "THIS MONTH" },
-  { label: "DIAGNOSTIC RUNS", value: "12.4K", delta: "+28% MoM" },
-  { label: "ACTIVE NOW", value: "LIVE", delta: "STATUS OK" },
-  { label: "PRODUCTS", value: "3", delta: "1 LIVE · 2 SOON" },
-]
-
-function usePad(n: number): string {
-  return String(n).padStart(2, "0")
+interface Product {
+  id: string
+  jaName: string
+  enName: string
+  tagline: string
+  description: string
+  status: ProductStatus
+  badge: string
+  href: string
+  external: boolean
+  meta: { label: string; value: string }[]
 }
 
-function Clock() {
-  const [time, setTime] = useState("--:--:-- JST")
+// エグタイプ 16 キャラ全員。正解データ: egtype/src/data/types.ts より
+// dangerRank S → A → B → C 順に並べ替え（図鑑の主役）
+const ALL_CHARACTERS: Character[] = [
+  { id: "GMCK", name: "ぶるとら", animal: "トラ", theme: "全賭け冒険家", catchphrase: "次は取り返すから", dangerRank: "S" },
+  { id: "GRCK", name: "ごりおし", animal: "ゴリラ", theme: "圧の王様", catchphrase: "お前のためを思って言ってるんだ", dangerRank: "S" },
+  { id: "GRCT", name: "ぺかりん", animal: "ペリカン", theme: "確率の奴隷", catchphrase: "今日はツイてる気がする", dangerRank: "S" },
+  { id: "BRWT", name: "らむむ", animal: "—", theme: "ふわふわの迷子", catchphrase: "いつでもやめられるし", dangerRank: "S" },
+  { id: "GMWT", name: "ちゅーた", animal: "ネズミ", theme: "善意の布教者", catchphrase: "これ本当にいいものなの！", dangerRank: "A" },
+  { id: "BMCT", name: "もぐらし", animal: "モグラ", theme: "永遠の充電中", catchphrase: "明日から本気出す", dangerRank: "A" },
+  { id: "BRCT", name: "ぐびおに", animal: "鬼", theme: "酔いの仮面", catchphrase: "もう一杯、ちょっとだけ", dangerRank: "A" },
+  { id: "GMCT", name: "うわきつね", animal: "キツネ", theme: "永遠の新人", catchphrase: "次こそ本物だから", dangerRank: "B" },
+  { id: "GRWK", name: "くじゃりーぬ", animal: "クジャク", theme: "ハリボテ姫", catchphrase: "これは自分への投資だから", dangerRank: "B" },
+  { id: "BMCK", name: "ふくめろ", animal: "フクロウ", theme: "孤高の覚醒者", catchphrase: "真実を知ってるのは僕だけ", dangerRank: "B" },
+  { id: "BMWT", name: "めんたこ", animal: "タコ", theme: "浮き沈みの天才", catchphrase: "もう無理（明日には元気）", dangerRank: "B" },
+  { id: "GMWK", name: "いいかも", animal: "カモ", theme: "都合のいい聖人", catchphrase: "私がやらなきゃ誰がやるの", dangerRank: "C" },
+  { id: "GRWT", name: "ぱりぴよ", animal: "ひよこ", theme: "いいね中毒", catchphrase: "いいねが来ないと息ができない", dangerRank: "C" },
+  { id: "BMWK", name: "うらぴょん", animal: "ウサギ", theme: "星の操り人形", catchphrase: "水星が逆行してるから仕方ない", dangerRank: "C" },
+  { id: "BRCK", name: "しゃっちー", animal: "シャチ", theme: "過労の歯車", catchphrase: "休んだら迷惑かかるから", dangerRank: "C" },
+  { id: "BRWK", name: "すりよりす", animal: "リス", theme: "空気の奴隷", catchphrase: "みんながそう言ってるし", dangerRank: "C" },
+]
+
+// PRODUCTS: 夜職事業の関連プロダクト（SHOW_PRODUCTS=false の間は非表示）
+const PRODUCTS: Product[] = [
+  {
+    id: "yorulog",
+    jaName: "ヨルログ",
+    enName: "YORULOG",
+    tagline: "ナイトワーク向け CRM",
+    description: "ホスト/キャバ/スナック/バーの事業者・現場スタッフ・キャスト個人、それぞれに向けたプランを提供する顧客管理 CRM。iOS + Web。Waitlist 受付中。",
+    status: "soon",
+    badge: "COMING SOON",
+    href: "https://yorulog.vercel.app/waitlist",
+    external: true,
+    meta: [
+      { label: "TARGET", value: "事業者・個人 両対応" },
+      { label: "STATUS", value: "Waitlist 受付中" },
+    ],
+  },
+  {
+    id: "nomishugy",
+    jaName: "のみしゅぎ",
+    enName: "NOMISHUGY",
+    tagline: "バー業態特化の店舗ポータル",
+    description: "大阪ミナミのバー業態に特化。店舗探し・利用者マッチング・バー求人・店舗運営支援を統合する構想で、現在は店舗側ポータルが先行稼働中。事前登録受付中。",
+    status: "soon",
+    badge: "COMING SOON",
+    href: "https://nomishugy.vercel.app/coming-soon",
+    external: true,
+    meta: [
+      { label: "AREA", value: "大阪ミナミ" },
+      { label: "FOCUS", value: "バー業態特化" },
+    ],
+  },
+]
+
+function statusColor(status: ProductStatus): string {
+  switch (status) {
+    case "live": return "text-primary"
+    case "soon": return "text-pop-orange"
+    case "preview": return "text-muted-foreground"
+  }
+}
+
+function statusDot(status: ProductStatus): string {
+  switch (status) {
+    case "live": return "bg-primary"
+    case "soon": return "bg-pop-orange"
+    case "preview": return "bg-muted-foreground"
+  }
+}
+
+// 危険度ランク → ポップ色クラス
+function rankColor(rank: Character["dangerRank"]): string {
+  switch (rank) {
+    case "S": return "text-rank-s"
+    case "A": return "text-rank-a"
+    case "B": return "text-rank-b"
+    case "C": return "text-rank-c"
+  }
+}
+
+// PLAYGROUND: ゲーム・ツール群。
+// ぺかりんちんちろは CHARACTERS のスピンオフ作品として格上げしたためここから除外。
+const EXPERIMENTS: Experiment[] = [
+  { id: "wordwolf", ja: "ワードウルフ", en: "WORD WOLF", category: "Game", status: "active", href: "/word-wolf/" },
+  { id: "kingscup", ja: "キングスカップ", en: "KINGS CUP", category: "Game", status: "active", href: "/kingscup/" },
+  { id: "compat", ja: "相性診断", en: "COMPATIBILITY", category: "Diagnostic", status: "active", href: "/compatibility/" },
+  { id: "nickname", ja: "あだ名メーカー", en: "NICKNAME GEN", category: "Tool", status: "active", href: "/nickname-gen/" },
+  { id: "puzzle", ja: "6 ボールパズル", en: "6-BALL PUZZLE", category: "Game", status: "beta", href: "/puzzle/" },
+  { id: "egramen", ja: "えぐラーメン食堂", en: "EGRAMEN", category: "Game", status: "beta", href: "/egramen/" },
+  { id: "yamanote", ja: "山手線ゲーム", en: "YAMANOTE", category: "Game", status: "soon" },
+]
+
+// 稼働日数カウンタ（リリース起点を 2026-02-20 = egtype 初版日とする）
+function useUptimeDays(): number {
+  const [days, setDays] = useState(0)
   useEffect(() => {
-    const update = () => {
-      const now = new Date()
-      const jst = new Date(now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60000)
-      setTime(`${usePad(jst.getHours())}:${usePad(jst.getMinutes())}:${usePad(jst.getSeconds())} JST`)
-    }
-    update()
-    const id = setInterval(update, 1000)
-    return () => clearInterval(id)
+    const origin = new Date("2026-02-20T00:00:00+09:00")
+    const now = new Date()
+    const diff = Math.floor((now.getTime() - origin.getTime()) / (1000 * 60 * 60 * 24))
+    setDays(diff)
   }, [])
-  return <span className="font-mono">{time}</span>
+  return days
+}
+
+// セクション見出しの上に付く、柔らかい丸ピルのラベル（旧 // モノラベルの置き換え）
+function SectionPill({ children, color }: { children: React.ReactNode; color: string }) {
+  return (
+    <span
+      className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-card border-[2px] border-border font-display font-extrabold text-[12px] tracking-wide clay"
+      style={{ color }}
+    >
+      <span className="w-2 h-2 rounded-full shimmer" style={{ background: color }} />
+      {children}
+    </span>
+  )
 }
 
 export default function Home() {
   const [navOpen, setNavOpen] = useState(false)
+  const uptimeDays = useUptimeDays()
 
   return (
-    <div className="min-h-screen bg-[#07090B] text-[#D6DFD6] font-[var(--font-ibm-plex-sans-jp),sans-serif]">
-      {/* Status bar */}
-      <div className="border-b border-[#1F2824] px-4 md:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#7F8A7F] font-[var(--font-ibm-plex-mono),monospace]">
-        <div className="flex items-center gap-4 md:gap-5 flex-wrap">
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-[#7CFF7C] animate-pulse" style={{ boxShadow: "0 0 6px #7CFF7C" }} />
-            LAB.STATUS = OPERATIONAL
-          </span>
-          <span>LOC: OSAKA/MINAMI</span>
-        </div>
-        <Clock />
-      </div>
-
-      {/* Nav */}
-      <nav className="sticky top-0 z-40 backdrop-blur bg-[#07090B]/90 border-b border-[#1F2824]">
+    <div className="min-h-screen bg-background text-foreground">
+      {/* ナビゲーション */}
+      <nav className="sticky top-0 z-40 backdrop-blur bg-background/80 border-b-[2px] border-border">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2.5 font-[var(--font-ibm-plex-sans-jp),sans-serif] font-bold text-[15px] tracking-[0.1em]">
-            <div className="w-7 h-7 border-[1.5px] border-[#7CFF7C] grid place-items-center text-[#7CFF7C] font-[var(--font-ibm-plex-mono),monospace] text-xs font-semibold">
-              え
-            </div>
-            <span>えぐしゅぎ・ラボ</span>
-          </div>
-          <ul className="hidden md:flex gap-7 text-[13px] font-[var(--font-ibm-plex-mono),monospace] uppercase tracking-wide">
-            <li><a href="#experiments" className="hover:text-[#7CFF7C] text-[#7F8A7F] transition-colors">// experiments</a></li>
-            <li><a href="#products" className="hover:text-[#7CFF7C] text-[#7F8A7F] transition-colors">// products</a></li>
-            <li><a href="#shop" className="hover:text-[#7CFF7C] text-[#7F8A7F] transition-colors">// shop</a></li>
+          <Link href="/" className="flex items-center" aria-label="エグキャラ ホーム">
+            <img src="/egchara-logo.png" alt="エグキャラ" className="h-9 md:h-10 w-auto" />
+          </Link>
+          <ul className="hidden md:flex gap-7 text-[14px] font-display font-bold">
+            <li><a href="#characters" className="hover:text-primary text-muted-foreground transition-colors">キャラクター</a></li>
+            {SHOW_PRODUCTS && (
+              <li><a href="#products" className="hover:text-primary text-muted-foreground transition-colors">プロダクト</a></li>
+            )}
+            {SHOW_PLAYGROUND && (
+              <li><a href="#playground" className="hover:text-primary text-muted-foreground transition-colors">あそぶ</a></li>
+            )}
+            <li><a href="#shop" className="hover:text-primary text-muted-foreground transition-colors">ショップ</a></li>
+            <li><a href="#about" className="hover:text-primary text-muted-foreground transition-colors">エグキャラとは</a></li>
           </ul>
           <button
-            className="md:hidden border border-[#1F2824] px-3 py-2 text-[12px] font-[var(--font-ibm-plex-mono),monospace] hover:bg-[#7CFF7C] hover:text-[#07090B] active:bg-[#7CFF7C] active:text-[#07090B] transition"
+            className="md:hidden bg-card border-[2px] border-border px-4 py-2 text-[13px] font-display font-bold rounded-full clay-btn"
             onClick={() => setNavOpen(!navOpen)}
             aria-label="メニュー"
           >
-            {navOpen ? "CLOSE" : "MENU"}
+            {navOpen ? "とじる" : "メニュー"}
           </button>
         </div>
         {navOpen && (
-          <div className="md:hidden border-t border-[#1F2824] px-4 py-4 flex flex-col gap-4 text-[13px] font-[var(--font-ibm-plex-mono),monospace] uppercase tracking-wide bg-[#07090B]">
-            <a href="#experiments" onClick={() => setNavOpen(false)} className="text-[#7F8A7F] hover:text-[#7CFF7C]">// experiments</a>
-            <a href="#products" onClick={() => setNavOpen(false)} className="text-[#7F8A7F] hover:text-[#7CFF7C]">// products</a>
-            <a href="#shop" onClick={() => setNavOpen(false)} className="text-[#7F8A7F] hover:text-[#7CFF7C]">// shop</a>
+          <div className="md:hidden border-t-[2px] border-border px-4 py-4 flex flex-col gap-4 text-[15px] font-display font-bold bg-background">
+            <a href="#characters" onClick={() => setNavOpen(false)} className="text-muted-foreground hover:text-primary">キャラクター</a>
+            {SHOW_PRODUCTS && (
+              <a href="#products" onClick={() => setNavOpen(false)} className="text-muted-foreground hover:text-primary">プロダクト</a>
+            )}
+            {SHOW_PLAYGROUND && (
+              <a href="#playground" onClick={() => setNavOpen(false)} className="text-muted-foreground hover:text-primary">あそぶ</a>
+            )}
+            <a href="#shop" onClick={() => setNavOpen(false)} className="text-muted-foreground hover:text-primary">ショップ</a>
+            <a href="#about" onClick={() => setNavOpen(false)} className="text-muted-foreground hover:text-primary">エグキャラとは</a>
           </div>
         )}
       </nav>
 
-      {/* Hero */}
-      <section className="max-w-6xl mx-auto px-4 md:px-6 pt-16 md:pt-24 pb-16 md:pb-20">
-        <div className="flex gap-4 items-center mb-6 text-[11px] text-[#7F8A7F] font-[var(--font-ibm-plex-mono),monospace] flex-wrap">
-          <span>001 / CREATIVE LAB / 2026</span>
-          <span className="flex-1 min-w-6 border-t border-dashed border-[#1F2824]" />
-          <span>株式会社EGS</span>
+      {/* Hero: 16体のエグかわ妖精たち */}
+      <section className="relative max-w-6xl mx-auto px-4 md:px-6 pt-16 md:pt-28 pb-12 md:pb-16 overflow-hidden">
+        {/* 装飾: 粘土風のふわふわブロブ */}
+        <div
+          className="absolute top-6 right-0 w-[460px] h-[460px] rounded-full opacity-50 blur-3xl pointer-events-none float-bob"
+          style={{ background: "radial-gradient(circle, #ff5ca8, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-6 w-[340px] h-[340px] rounded-full opacity-40 blur-3xl pointer-events-none float-bob"
+          style={{ background: "radial-gradient(circle, #22d3ee, transparent 70%)", animationDelay: "1.5s" }}
+        />
+
+        <div className="relative">
+          {/* トップの大きいロゴ */}
+          <img
+            src="/egchara-logo.png"
+            alt="エグキャラ"
+            className="w-full max-w-md md:max-w-2xl mb-8 md:mb-10 float-bob"
+          />
+
+          <div className="inline-flex items-center gap-2 mb-7 px-4 py-2 rounded-full bg-card border-[2px] border-border text-[13px] font-display font-extrabold text-pop-pink clay">
+            <span className="w-2.5 h-2.5 rounded-full bg-pop-pink shimmer" />
+            エグくて、かわいい。
+          </div>
+
+          <h1 className="font-display font-black text-[clamp(46px,10vw,120px)] leading-[0.95] tracking-[-0.03em] mb-6">
+            あなたは、どの
+            <br />
+            <span className="text-primary">エグキャラ</span>
+            <span className="text-pop-pink">？</span>
+          </h1>
+
+          <p className="max-w-xl text-[clamp(15px,1.6vw,18px)] leading-[1.9] text-muted-foreground mb-10">
+            <strong className="text-foreground font-bold">自虐 × 妖精語 × 匂わせポエム。</strong>
+            <br />
+            ちょっとダメで、やたら愛おしい妖精たち。
+            <br />
+            まずは診断で、自分の1体を見つけよう。
+          </p>
+
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/egtype/"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white font-display font-extrabold text-[16px] rounded-full clay-btn"
+            >
+              診断してみる →
+            </Link>
+            <a
+              href="#characters"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-card border-[3px] border-border text-foreground font-display font-extrabold text-[16px] rounded-full clay-btn"
+            >
+              16体を見る
+            </a>
+          </div>
         </div>
-        <h1 className="font-[var(--font-ibm-plex-sans-jp),sans-serif] font-bold text-[clamp(44px,11vw,128px)] leading-[0.95] tracking-[-0.04em] mb-6">
-          えぐしゅぎ<span className="text-[#7CFF7C] relative inline-block px-1">・</span>ラボ
-        </h1>
-        <p className="max-w-xl text-[clamp(14px,1.6vw,17px)] leading-[1.7] text-[#7F8A7F] mb-10">
-          <strong className="text-[#D6DFD6] font-medium">夜の街から生まれる実験的コンテンツ。</strong>
-          <br />
-          診断・ゲーム・ツールで、人と人が出会う瞬間を再設計する研究室。
-        </p>
-        <a
-          href="#experiments"
-          className="inline-flex items-center gap-3 px-6 py-3.5 bg-[#D6DFD6] text-[#07090B] border border-[#D6DFD6] font-[var(--font-ibm-plex-mono),monospace] text-[13px] uppercase tracking-wider font-semibold hover:bg-[#7CFF7C] hover:border-[#7CFF7C] hover:shadow-[0_0_16px_rgba(124,255,124,0.25)] transition-all"
+
+        {/* Hero 直下: 16体の顔を横スクロールマーキーで即見せ（キャラ主役の証明） */}
+        <div className="relative mt-12 md:mt-16 -mx-4 md:-mx-6 overflow-hidden marquee-mask">
+          <div className="flex gap-4 md:gap-5 marquee-track w-max py-2 px-4">
+            {[...ALL_CHARACTERS, ...ALL_CHARACTERS].map((c, i) => (
+              <div
+                key={`${c.id}-${i}`}
+                className="w-20 h-20 md:w-24 md:h-24 rounded-[1.4rem] overflow-hidden bg-card border-[3px] border-border flex-shrink-0 clay"
+                title={c.name}
+              >
+                <img
+                  src={`/egtype/characters/${c.id}.webp`}
+                  alt={c.name}
+                  loading="lazy"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NOW: ぷっくり粘土の実績カウンタ */}
+      <section className="max-w-6xl mx-auto px-4 md:px-6">
+        {(() => {
+          const stats = [
+            { label: "キャラクター", value: "16", delta: "全員エグかわ", color: "var(--primary)" },
+            ...(SHOW_PLAYGROUND ? [{ label: "あそべる実験", value: "7", delta: "PLAYGROUND", color: "var(--pop-cyan)" }] : []),
+            { label: "スピンオフ", value: "1", delta: "ぺかりんちんちろ", color: "var(--pop-pink)" },
+            { label: "稼働日数", value: `${uptimeDays}日`, delta: "2026-02-20 から", color: "var(--pop-orange)" },
+          ]
+          const mdCols = stats.length === 4 ? "md:grid-cols-4" : "md:grid-cols-3"
+          return (
+            <div className={`grid grid-cols-2 ${mdCols} gap-3 md:gap-5`}>
+              {stats.map((cell, i) => (
+                <div
+                  key={i}
+                  className="bg-card border-[3px] border-border rounded-[1.6rem] py-6 px-5 clay clay-hover"
+                >
+                  <div className="text-[12px] text-muted-foreground font-display font-bold mb-2">
+                    {cell.label}
+                  </div>
+                  <div className="font-display font-black text-[clamp(30px,4vw,44px)] tracking-tight leading-none" style={{ color: cell.color }}>
+                    {cell.value}
+                  </div>
+                  <div className="mt-2 text-[11px] text-muted-foreground font-medium">
+                    {cell.delta}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        })()}
+      </section>
+
+      {/* CHARACTERS: 16体の図鑑（サイトの主役・全員を一覧表示） */}
+      <section id="characters" className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24">
+        <div className="flex items-end justify-between gap-6 mb-9 flex-col sm:flex-row">
+          <div>
+            <div className="mb-4">
+              <SectionPill color="var(--pop-pink)">キャラクター</SectionPill>
+            </div>
+            <h2 className="font-display font-black text-[clamp(30px,5.5vw,54px)] tracking-[-0.02em] leading-tight">
+              エグキャラ<span className="text-primary">図鑑</span>。全16体。
+            </h2>
+            <p className="mt-3 max-w-xl text-[15px] text-muted-foreground leading-relaxed">
+              診断「エグタイプ」から生まれた妖精たち。危険度ランク S → C 順。あなたはどの子？
+            </p>
+          </div>
+          <div className="text-[14px] text-muted-foreground font-display font-bold bg-card border-[2px] border-border rounded-full px-4 py-2 clay">
+            <strong className="text-primary font-black">16</strong> / 16 そろってる
+          </div>
+        </div>
+
+        {/* 図鑑グリッド: 16体を全員カード表示。これがサイトの中心 */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 mb-9">
+          {ALL_CHARACTERS.map((c) => (
+            <Link
+              key={c.id}
+              href="/egtype/"
+              className="group relative bg-card border-[3px] border-border rounded-[1.8rem] p-4 clay clay-hover"
+            >
+              {/* 危険度ランクのぷっくりバッジ */}
+              <span
+                className={`absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-card border-[2.5px] border-current flex items-center justify-center font-display font-black text-[14px] clay ${rankColor(c.dangerRank)}`}
+                title={`危険度 ${c.dangerRank}`}
+              >
+                {c.dangerRank}
+              </span>
+              <div className="aspect-square rounded-[1.4rem] overflow-hidden bg-secondary border-[2.5px] border-border mb-3 group-hover:border-primary/40 transition-colors">
+                <img
+                  src={`/egtype/characters/${c.id}.webp`}
+                  alt={c.name}
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="font-display font-black text-[16px] md:text-[18px] tracking-tight leading-tight">{c.name}</div>
+              <div className="text-[12px] text-primary font-bold mb-1.5">{c.theme}</div>
+              <p className="text-[12px] text-muted-foreground leading-snug line-clamp-2">
+                「{c.catchphrase}」
+              </p>
+            </Link>
+          ))}
+        </div>
+
+        {/* 診断 CTA バナー（図鑑の下に従える） */}
+        <Link
+          href="/egtype/"
+          className="block bg-primary text-white rounded-[2rem] p-7 md:p-9 mb-6 clay-btn"
         >
-          実験をみる / EXPLORE
-          <span>→</span>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <span className="inline-block mb-3 px-3 py-1 rounded-full bg-white/20 text-white font-display font-extrabold text-[12px]">
+                メイン診断・公開中
+              </span>
+              <h3 className="font-display font-black text-[clamp(22px,3.4vw,34px)] tracking-tight mb-2 leading-tight">
+                エグタイプ診断で自分の1体を見つける
+              </h3>
+              <p className="text-[15px] text-white/85 leading-relaxed max-w-xl">
+                4 軸性格診断で 16 パターンに判定。自虐 × 妖精語 × 匂わせポエムの 3 層構造。
+              </p>
+            </div>
+            <span className="flex-shrink-0 inline-flex items-center gap-2 px-7 py-3.5 bg-white text-primary font-display font-black text-[16px] rounded-full">
+              診断する →
+            </span>
+          </div>
+        </Link>
+
+        {/* スピンオフ: ぺかりんのちんちろ（GRCT モチーフのキャラ単独ゲーム） */}
+        <a
+          href="/pekarin-chinchiro/"
+          className="block bg-card border-[3px] border-border rounded-[2rem] p-6 md:p-7 clay clay-hover group"
+        >
+          <div className="mb-4">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pop-pink/15 text-pop-pink font-display font-extrabold text-[12px]">
+              <span className="w-2 h-2 rounded-full bg-pop-pink shimmer" />
+              スピンオフ・公開中
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-5 md:gap-7 items-center">
+            <div className="w-28 h-28 rounded-[1.6rem] overflow-hidden bg-secondary border-[3px] border-border clay float-bob">
+              <img
+                src="/egtype/characters/GRCT.webp"
+                alt="ぺかりん"
+                loading="lazy"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div>
+              <h3 className="font-display font-black text-[clamp(22px,3vw,30px)] tracking-tight mb-1">
+                ぺかりんのちんちろ
+              </h3>
+              <div className="text-[13px] text-muted-foreground font-display font-bold mb-3">サイコロ遊び・PWA</div>
+              <p className="text-[15px] text-muted-foreground leading-relaxed mb-5">
+                エグキャラの<strong className="text-foreground font-bold">ぺかりん</strong>
+                がホストのチンチロリン。エグキャラ単独ゲーム化、第 1 弾。
+              </p>
+              <span className="inline-flex items-center gap-2 text-[15px] font-display font-black text-pop-pink group-hover:translate-x-1 transition-transform">
+                プレイする →
+              </span>
+            </div>
+          </div>
         </a>
       </section>
 
-      {/* Data strip */}
-      <div className="max-w-6xl mx-auto px-4 md:px-6 mt-6 md:mt-10">
-        <div className="border-y border-[#1F2824] py-6 md:py-7 grid grid-cols-2 md:grid-cols-4">
-          {DATA.map((cell, i) => (
-            <div
-              key={i}
-              className={`px-5 md:px-8 ${i < DATA.length - 1 ? "md:border-r md:border-dashed md:border-[#1F2824]" : ""} ${i % 2 === 0 ? "border-r border-dashed border-[#1F2824] md:border-r" : ""} ${i < 2 ? "border-b md:border-b-0 border-dashed border-[#1F2824] pb-5 md:pb-0" : i < 4 ? "pt-5 md:pt-0" : ""}`}
-            >
-              <div className="text-[10px] text-[#7F8A7F] uppercase tracking-wider mb-2 font-[var(--font-ibm-plex-mono),monospace]">
-                {cell.label}
-              </div>
-              <div className="font-[var(--font-space-grotesk),sans-serif] font-semibold text-[clamp(22px,3.5vw,32px)] tracking-tight leading-none">
-                {cell.value}
-              </div>
-              <div className="mt-1.5 text-[10px] text-[#7CFF7C] font-[var(--font-ibm-plex-mono),monospace]">
-                {cell.delta}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Featured Products */}
-      <section id="products" className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24 border-t border-[#1F2824]">
-        <div className="flex items-end justify-between gap-6 mb-9 flex-col sm:flex-row">
-          <div>
-            <div className="mb-3 text-[11px] text-[#7F8A7F] uppercase tracking-wider font-[var(--font-ibm-plex-mono),monospace] flex items-center gap-2">
-              <span className="w-6 h-px bg-[#7CFF7C]" />
-              FEATURED
-            </div>
-            <h2 className="font-[var(--font-ibm-plex-sans-jp),sans-serif] font-bold text-[clamp(28px,5.5vw,52px)] tracking-[-0.03em] leading-tight">
-              主力プロダクト <span className="text-[#7F8A7F] font-medium text-[0.6em] tracking-tight font-[var(--font-space-grotesk),sans-serif]">/ Products</span>
-            </h2>
-          </div>
-          <div className="text-[13px] text-[#7F8A7F] font-[var(--font-ibm-plex-mono),monospace]">
-            <strong className="text-[#7CFF7C] font-medium">3</strong> TOTAL
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-6">
-          <a
-            href="https://nomishugy.vercel.app/coming-soon"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-[#0E1214] border border-[#1F2824] p-7 md:p-9 flex flex-col justify-between min-h-[340px] relative overflow-hidden hover:border-[#7CFF7C] hover:bg-[#151A1D] transition-colors group"
-          >
+      {/* PRODUCTS: 夜職プロダクト(NOXA系) — SHOW_PRODUCTS=false の間は非表示 */}
+      {SHOW_PRODUCTS && (
+        <section id="products" className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24 border-t-[2px] border-border">
+          <div className="flex items-end justify-between gap-6 mb-9 flex-col sm:flex-row">
             <div>
-              <span className="absolute top-5 right-5 text-[10px] text-[#5A6460] font-[var(--font-ibm-plex-mono),monospace]">// 01</span>
-              <span className="text-[10px] text-[#FF9E3B] uppercase tracking-wider mb-4 inline-flex items-center gap-1.5 font-[var(--font-ibm-plex-mono),monospace]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#FF9E3B]" style={{ boxShadow: "0 0 6px #FF9E3B" }} />
-                COMING SOON · 事前登録受付中
-              </span>
-              <h3 className="font-[var(--font-ibm-plex-sans-jp),sans-serif] font-bold text-[clamp(26px,4vw,36px)] leading-tight mb-3 tracking-tight">のみしゅぎ</h3>
-              <p className="text-[#7F8A7F] text-sm leading-relaxed mb-6">
-                大阪ミナミの夜を、もっと楽しく。バー探しと飲み仲間を、ひとつのアプリで。
+              <div className="mb-4">
+                <SectionPill color="var(--primary)">プロダクト</SectionPill>
+              </div>
+              <h2 className="font-display font-black text-[clamp(30px,5.5vw,54px)] tracking-[-0.02em] leading-tight">
+                夜職事業の<span className="text-primary">親ブランド</span>と、<br />
+                並行プロダクト。
+              </h2>
+              <p className="mt-3 max-w-xl text-[15px] text-muted-foreground leading-relaxed">
+                キャラクター作品とは別軸で、ひとりで動かしている夜職領域。
               </p>
             </div>
-            <div className="flex gap-5 md:gap-6 pt-5 border-t border-dashed border-[#1F2824] flex-wrap text-[11px] text-[#7F8A7F] font-[var(--font-ibm-plex-mono),monospace]">
-              <div><span>AREA</span><strong className="block text-[#D6DFD6] font-medium text-base mt-0.5">大阪ミナミ</strong></div>
-              <div><span>LAUNCH</span><strong className="block text-[#D6DFD6] font-medium text-base mt-0.5">2026 Q2</strong></div>
-              <div><span>STATUS</span><strong className="block text-[#FF9E3B] font-medium text-base mt-0.5">PRE-REG</strong></div>
+            <div className="text-[14px] text-muted-foreground font-display font-bold bg-card border-[2px] border-border rounded-full px-4 py-2 clay">
+              <strong className="text-primary font-black">{PRODUCTS.length + 1}</strong> プロジェクト
             </div>
-          </a>
-          <div className="flex flex-col gap-6">
-            <a
-              href="https://yorulog.vercel.app/waitlist"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-[#0E1214] border border-[#1F2824] p-5 flex items-start justify-between gap-4 min-h-[135px] hover:border-[#7CFF7C] hover:bg-[#151A1D] transition-colors"
-            >
-              <div>
-                <div className="text-[10px] text-[#FF9E3B] uppercase tracking-wider mb-2 font-[var(--font-ibm-plex-mono),monospace]">// 02 · COMING SOON</div>
-                <h4 className="font-[var(--font-ibm-plex-sans-jp),sans-serif] font-semibold text-lg mb-1 tracking-tight">ヨルログ</h4>
-                <p className="text-xs text-[#7F8A7F] leading-snug">夜職向け売上・顧客管理 CRM<br />事前登録受付中</p>
-              </div>
-              <div className="w-10 h-10 border border-[#1F2824] grid place-items-center text-[#7CFF7C] font-[var(--font-ibm-plex-mono),monospace] text-lg font-semibold flex-shrink-0">¥</div>
-            </a>
-            <Link
-              href="/egtype/"
-              className="bg-[#0E1214] border border-[#1F2824] p-5 flex items-start justify-between gap-4 min-h-[135px] hover:border-[#7CFF7C] hover:bg-[#151A1D] transition-colors"
-            >
-              <div>
-                <div className="text-[10px] text-[#7CFF7C] uppercase tracking-wider mb-2 font-[var(--font-ibm-plex-mono),monospace]">// 03 · LIVE</div>
-                <h4 className="font-[var(--font-ibm-plex-sans-jp),sans-serif] font-semibold text-lg mb-1 tracking-tight">エグタイプ診断</h4>
-                <p className="text-xs text-[#7F8A7F] leading-snug">4 軸 16 タイプ性格診断</p>
-              </div>
-              <div className="w-10 h-10 border border-[#1F2824] grid place-items-center text-[#7CFF7C] font-[var(--font-ibm-plex-mono),monospace] text-lg font-semibold flex-shrink-0">◎</div>
-            </Link>
           </div>
-        </div>
-      </section>
 
-      {/* Experiments index */}
-      <section id="experiments" className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24 border-t border-[#1F2824]">
+          {/* メインカード: Noxa（親ブランド構想） */}
+          <Link
+            href="/noxa/"
+            className="block bg-card border-[3px] border-border rounded-[2rem] p-6 md:p-8 mb-8 clay clay-hover group"
+          >
+            <div className="mb-4">
+              <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/15 text-primary font-display font-extrabold text-[12px]">
+                <span className="w-2 h-2 rounded-full bg-primary" />
+                構想中・未ローンチ
+              </span>
+            </div>
+
+            <div className="flex items-center gap-4 md:gap-6 mb-5">
+              <img
+                src="/noxa-logo-192.png"
+                alt=""
+                aria-hidden
+                className="w-16 h-16 md:w-20 md:h-20 rounded-[1.4rem] flex-shrink-0 clay"
+              />
+              <div>
+                <h3 className="font-display font-black text-[clamp(28px,4.2vw,44px)] tracking-tight leading-none mb-1">
+                  Noxa
+                </h3>
+                <div className="text-[13px] text-muted-foreground font-display font-bold">夜職 DX プラットフォーム・構想</div>
+              </div>
+            </div>
+
+            <p className="text-muted-foreground text-[15px] leading-relaxed mb-6 max-w-2xl">
+              夜職 DX プラットフォームの<strong className="text-foreground font-bold">構想</strong>。
+              同じ Firebase プロジェクトと OAuth 同意画面で複数アプリを束ねる
+              <strong className="text-foreground font-bold">共有ブランド名</strong>として運用中。
+              独立サービスはまだ未着手。
+            </p>
+
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              {[
+                { name: "Noxa Core", en: "本体（構想中）", color: "var(--pop-purple)", dashed: true },
+                { name: "ヨルログ", en: "YORULOG", color: "var(--pop-cyan)", dashed: false },
+                { name: "のみしゅぎ", en: "NOMISHUGY", color: "var(--pop-orange)", dashed: false },
+              ].map((p) => (
+                <div
+                  key={p.name}
+                  className={`rounded-[1.2rem] p-4 bg-secondary/50 border-[2.5px] ${p.dashed ? "border-dashed border-border" : "border-border"}`}
+                >
+                  <div className="text-[11px] font-display font-bold mb-1" style={{ color: p.color }}>
+                    {p.en}
+                  </div>
+                  <div className="text-[13px] md:text-[15px] font-bold truncate">{p.name}</div>
+                </div>
+              ))}
+            </div>
+
+            <span className="inline-flex items-center gap-2 text-[15px] font-display font-black text-primary group-hover:translate-x-1 transition-transform">
+              構想を見る →
+            </span>
+          </Link>
+
+          {/* サブカード grid: 関連プロダクト 2 つ */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {PRODUCTS.map((p) => {
+              const cardClass =
+                "block bg-card border-[3px] border-border rounded-[2rem] p-6 md:p-7 clay clay-hover group relative overflow-hidden"
+              const inner = (
+                <>
+                  <div className="mb-3">
+                    <span className={`inline-flex items-center gap-2 font-display font-extrabold text-[12px] ${statusColor(p.status)}`}>
+                      <span
+                        className={`w-2 h-2 rounded-full ${statusDot(p.status)} ${p.status === "live" ? "shimmer" : ""}`}
+                      />
+                      {p.badge}
+                    </span>
+                  </div>
+                  <h3 className="font-display font-black text-[clamp(20px,2.6vw,26px)] tracking-tight mb-1">
+                    {p.jaName}
+                  </h3>
+                  <div className="text-[12px] text-muted-foreground font-display font-bold mb-3">{p.enName}</div>
+                  <p className="text-[15px] text-foreground leading-relaxed mb-4">
+                    <strong className="font-bold">{p.tagline}</strong>
+                  </p>
+                  <p className="text-[14px] text-muted-foreground leading-relaxed mb-6">
+                    {p.description}
+                  </p>
+                  <div className="flex gap-3 flex-wrap">
+                    {p.meta.map((m) => (
+                      <div key={m.label} className="bg-secondary/50 border-[2px] border-border rounded-[1rem] px-3.5 py-2">
+                        <div className="text-[10px] text-muted-foreground font-display font-bold uppercase tracking-wide">{m.label}</div>
+                        <div className="text-[13px] font-bold mt-0.5">{m.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )
+              return p.external ? (
+                <a key={p.id} href={p.href} target="_blank" rel="noopener noreferrer" className={cardClass}>
+                  {inner}
+                </a>
+              ) : (
+                <Link key={p.id} href={p.href} className={cardClass}>
+                  {inner}
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* PLAYGROUND: 汎用ゲーム・ツール — SHOW_PLAYGROUND=false の間は非表示（エグキャラ無関係のため） */}
+      {SHOW_PLAYGROUND && (
+      <section id="playground" className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24 border-t-[2px] border-border">
         <div className="flex items-end justify-between gap-6 mb-9 flex-col sm:flex-row">
           <div>
-            <div className="mb-3 text-[11px] text-[#7F8A7F] uppercase tracking-wider font-[var(--font-ibm-plex-mono),monospace] flex items-center gap-2">
-              <span className="w-6 h-px bg-[#7CFF7C]" />
-              INDEX
+            <div className="mb-4">
+              <SectionPill color="var(--pop-cyan)">あそぶ</SectionPill>
             </div>
-            <h2 className="font-[var(--font-ibm-plex-sans-jp),sans-serif] font-bold text-[clamp(28px,5.5vw,52px)] tracking-[-0.03em] leading-tight">
-              実験一覧 <span className="text-[#7F8A7F] font-medium text-[0.6em] tracking-tight font-[var(--font-space-grotesk),sans-serif]">/ Experiments</span>
+            <h2 className="font-display font-black text-[clamp(30px,5.5vw,54px)] tracking-[-0.02em] leading-tight">
+              みんなで<span className="text-pop-cyan">あそぶ</span>。
             </h2>
+            <p className="mt-3 max-w-xl text-[15px] text-muted-foreground leading-relaxed">
+              ゲーム・診断・ツール。エグキャラと一緒に遊べる実験たち。
+            </p>
           </div>
-          <div className="text-[13px] text-[#7F8A7F] font-[var(--font-ibm-plex-mono),monospace]">
-            TOTAL: <strong className="text-[#7CFF7C] font-medium">{EXPERIMENTS.length}</strong>
+          <div className="text-[14px] text-muted-foreground font-display font-bold bg-card border-[2px] border-border rounded-full px-4 py-2 clay">
+            ぜんぶで <strong className="text-pop-cyan font-black">{EXPERIMENTS.length}</strong>
           </div>
         </div>
-        <div className="border-t border-[#1F2824]">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {EXPERIMENTS.map((exp) => {
+            const statusLabel = exp.status === "active" ? "あそべる" : exp.status === "beta" ? "ベータ" : "じゅんび中"
+            const statusCls = exp.status === "active" ? "text-pop-green" : exp.status === "beta" ? "text-pop-cyan" : "text-muted-foreground"
             const content = (
               <>
-                <span className="text-[11px] text-[#7F8A7F] font-[var(--font-ibm-plex-mono),monospace]">{exp.number}</span>
-                <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="font-[var(--font-ibm-plex-sans-jp),sans-serif] font-medium text-[15px] md:text-[17px] tracking-tight truncate">{exp.ja}</span>
-                  <span className="text-[10px] md:text-[11px] text-[#7F8A7F] uppercase tracking-wider font-[var(--font-ibm-plex-mono),monospace] truncate">{exp.en}</span>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[11px] text-muted-foreground font-display font-bold uppercase tracking-wide">{exp.category}</span>
+                  <span className={`inline-flex items-center gap-1.5 text-[12px] font-display font-extrabold ${statusCls}`}>
+                    <span className={`w-2 h-2 rounded-full bg-current ${exp.status === "active" ? "shimmer" : ""}`} />
+                    {statusLabel}
+                  </span>
                 </div>
-                <span className="hidden md:block text-[11px] text-[#7F8A7F] uppercase tracking-wider font-[var(--font-ibm-plex-mono),monospace]">{exp.category}</span>
-                <span className={`text-[11px] font-[var(--font-ibm-plex-mono),monospace] flex items-center gap-1.5 ${
-                  exp.status === "active" ? "text-[#7CFF7C]" : exp.status === "beta" ? "text-[#F4E04D]" : "text-[#7F8A7F]"
-                }`}>
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full bg-current ${exp.status === "active" ? "animate-pulse" : ""}`}
-                    style={exp.status === "active" ? { boxShadow: "0 0 6px currentColor" } : undefined}
-                  />
-                  {exp.status === "active" ? "ACTIVE" : exp.status === "beta" ? "BETA" : "SOON"}
-                </span>
-                <span className="text-[#7F8A7F] font-[var(--font-ibm-plex-mono),monospace] text-right">→</span>
+                <div className="font-display font-black text-[18px] tracking-tight mb-1">{exp.ja}</div>
+                <div className="text-[12px] text-muted-foreground font-display font-bold">{exp.en}</div>
               </>
             )
-            const gridCls = "grid grid-cols-[48px_1fr_auto_16px] md:grid-cols-[56px_1fr_100px_88px_20px] gap-3 md:gap-5 py-4 md:py-5 border-b border-[#1F2824] items-center hover:bg-[#0E1214] hover:px-3 transition-all"
+            const cardCls = "bg-card border-[3px] border-border rounded-[1.6rem] p-5 clay"
             return exp.href ? (
-              <a key={exp.id} href={exp.href} className={gridCls + " text-[#D6DFD6]"}>{content}</a>
+              <a key={exp.id} href={exp.href} className={`${cardCls} clay-hover text-foreground`}>
+                {content}
+              </a>
             ) : (
-              <div key={exp.id} className={gridCls + " text-[#D6DFD6] cursor-not-allowed opacity-70"}>{content}</div>
+              <div key={exp.id} className={`${cardCls} text-foreground opacity-55 cursor-not-allowed`}>
+                {content}
+              </div>
             )
           })}
         </div>
       </section>
+      )}
 
-      {/* Shop */}
-      <section id="shop" className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24 border-t border-[#1F2824]">
-        <div className="mb-9">
-          <div className="mb-3 text-[11px] text-[#7F8A7F] uppercase tracking-wider font-[var(--font-ibm-plex-mono),monospace] flex items-center gap-2">
-            <span className="w-6 h-px bg-[#7CFF7C]" />
-            SHOP
+      {/* ABOUT: エグキャラとは */}
+      <section id="about" className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24 border-t-[2px] border-border">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-10 md:gap-16 items-start">
+          <div>
+            <div className="mb-4">
+              <SectionPill color="var(--primary)">エグキャラとは</SectionPill>
+            </div>
+            <h2 className="font-display font-black text-[clamp(30px,5.5vw,54px)] tracking-[-0.02em] leading-tight">
+              エグキャラ、<br />
+              <span className="text-primary">ってなに？</span>
+            </h2>
           </div>
-          <h2 className="font-[var(--font-ibm-plex-sans-jp),sans-serif] font-bold text-[clamp(28px,5.5vw,52px)] tracking-[-0.03em] leading-tight">
-            スタンプショップ <span className="text-[#7F8A7F] font-medium text-[0.6em] tracking-tight font-[var(--font-space-grotesk),sans-serif]">/ Shop</span>
+          <div className="space-y-5 text-[16px] leading-[1.9] text-muted-foreground">
+            <p>
+              <strong className="text-foreground font-bold">エグキャラ</strong> は、
+              性格診断「エグタイプ」から生まれた 16 体のキャラクターたちです。
+            </p>
+            <p>
+              <span className="text-primary font-bold">自虐 × 妖精語 × 匂わせポエム</span>の 3 層構造で、
+              ちょっとダメだけど、なぜか放っておけない。そんな&quot;エグかわ&quot;妖精ばかり。
+            </p>
+            <p>
+              診断で自分のエグキャラを見つけて、ゲームで遊んで、スタンプで使う。
+              キャラクターを主役に、ひとつずつ世界を広げています。
+            </p>
+
+            {/* 旧 // モノラベルのグリッド → 柔らかい粘土チップに再設計 */}
+            <div className="grid grid-cols-2 gap-3 md:gap-4 pt-4">
+              {[
+                { label: "キャラクター", value: "16体（全員公開中）", color: "var(--primary)" },
+                { label: "あそびかた", value: "診断・ゲーム・スタンプ", color: "var(--pop-pink)" },
+                { label: "つくってる人", value: "ひとり + AI", color: "var(--pop-cyan)" },
+                { label: "うまれた国", value: "日本", color: "var(--pop-orange)" },
+              ].map((chip) => (
+                <div key={chip.label} className="bg-card border-[3px] border-border rounded-[1.4rem] p-4 clay">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: chip.color }} />
+                    <span className="text-[12px] font-display font-bold text-muted-foreground">{chip.label}</span>
+                  </div>
+                  <div className="text-[15px] font-display font-black text-foreground leading-tight">{chip.value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SHOP: LINE スタンプ（既存） */}
+      <section id="shop" className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24 border-t-[2px] border-border">
+        <div className="mb-9">
+          <div className="mb-4">
+            <SectionPill color="var(--pop-orange)">ショップ</SectionPill>
+          </div>
+          <h2 className="font-display font-black text-[clamp(30px,5.5vw,54px)] tracking-[-0.02em] leading-tight">
+            スタンプ<span className="text-pop-orange">ショップ</span>。
           </h2>
         </div>
         <Link
           href="/stamps/"
-          className="bg-[#0E1214] border border-[#1F2824] p-6 md:p-7 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-5 items-center hover:border-[#7CFF7C] hover:bg-[#151A1D] transition-colors group"
+          className="block bg-card border-[3px] border-border rounded-[2rem] p-7 md:p-9 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-5 items-center clay clay-hover group"
         >
           <div>
-            <div className="text-[10px] text-[#7CFF7C] uppercase tracking-wider mb-2 font-[var(--font-ibm-plex-mono),monospace]">▲ LINE STAMP</div>
-            <h3 className="font-[var(--font-ibm-plex-sans-jp),sans-serif] font-semibold text-[22px] mb-1.5 tracking-tight">LINE スタンプ</h3>
-            <p className="text-sm text-[#7F8A7F] leading-snug">えぐしゅぎラボ キャラクターのオリジナル LINE スタンプを販売中。</p>
+            <span className="inline-block text-[12px] text-pop-orange font-display font-extrabold mb-2">LINE スタンプ</span>
+            <h3 className="font-display font-black text-[24px] mb-1.5 tracking-tight">エグキャラ LINE スタンプ</h3>
+            <p className="text-[15px] text-muted-foreground leading-snug">エグキャラたちの LINE スタンプを販売中。日常使いできるエグかわ表情がいっぱい。</p>
           </div>
-          <span className="justify-self-start md:justify-self-auto inline-block px-4 py-2.5 border border-[#2A3632] text-[12px] uppercase tracking-wider font-[var(--font-ibm-plex-mono),monospace] group-hover:bg-[#7CFF7C] group-hover:text-[#07090B] group-hover:border-[#7CFF7C] transition-colors">
+          <span className="justify-self-start md:justify-self-auto inline-flex items-center gap-2 px-7 py-3.5 bg-pop-orange text-white text-[16px] font-display font-black rounded-full clay-btn">
             購入する →
           </span>
         </Link>
       </section>
 
+      {/* FOLLOW: SNS 集約、最重要 CTA */}
+      <section id="follow" className="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24 border-t-[2px] border-border">
+        <div className="mb-9">
+          <div className="mb-4">
+            <SectionPill color="var(--pop-pink)">フォロー</SectionPill>
+          </div>
+          <h2 className="font-display font-black text-[clamp(30px,5.5vw,54px)] tracking-[-0.02em] leading-tight">
+            エグキャラを<span className="text-pop-pink">フォロー</span>。
+          </h2>
+          <p className="mt-3 max-w-xl text-[15px] text-muted-foreground leading-relaxed">
+            新キャラ・制作の裏側・あそびの記録。SNS でフォローしてね。
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { label: "X", handle: "エグキャラ公式", url: "https://x.com/egtype_shindan", color: "var(--pop-pink)", soon: false },
+            { label: "Instagram", handle: "準備中", url: "", color: "var(--pop-cyan)", soon: true },
+            { label: "TikTok", handle: "準備中", url: "", color: "var(--pop-orange)", soon: true },
+          ].map((sns) =>
+            sns.soon ? (
+              <div
+                key={sns.label}
+                className="bg-card border-[3px] border-dashed border-border rounded-[1.6rem] p-5 opacity-60 cursor-default"
+                aria-disabled="true"
+              >
+                <div className="text-[12px] font-display font-bold text-muted-foreground mb-2">
+                  {sns.label}
+                </div>
+                <div className="font-display font-black text-[17px]" style={{ color: sns.color }}>
+                  {sns.handle}
+                </div>
+                <div className="mt-3 text-[12px] font-display font-bold text-muted-foreground">
+                  COMING SOON
+                </div>
+              </div>
+            ) : (
+              <a
+                key={sns.label}
+                href={sns.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-card border-[3px] border-border rounded-[1.6rem] p-5 clay clay-hover group"
+              >
+                <div className="text-[12px] font-display font-bold text-muted-foreground mb-2">
+                  {sns.label}
+                </div>
+                <div className="font-display font-black text-[17px]" style={{ color: sns.color }}>
+                  {sns.handle}
+                </div>
+                <div className="mt-3 text-[12px] font-display font-bold text-muted-foreground group-hover:text-foreground transition-colors">
+                  フォロー →
+                </div>
+              </a>
+            )
+          )}
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="max-w-6xl mx-auto px-4 md:px-6 pt-12 pb-8 border-t border-[#1F2824] mt-12">
-        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr_1fr] gap-8 md:gap-10 pb-10 border-b border-[#1F2824]">
+      <footer className="max-w-6xl mx-auto px-4 md:px-6 pt-12 pb-8 border-t-[2px] border-border mt-12">
+        <div className={`grid grid-cols-1 gap-8 md:gap-10 pb-10 border-b-[2px] border-border ${SHOW_PRODUCTS ? "md:grid-cols-[1.5fr_1fr_1fr_1fr]" : "md:grid-cols-[1.5fr_1fr_1fr]"}`}>
           <div>
-            <h4 className="font-[var(--font-ibm-plex-sans-jp),sans-serif] font-bold text-lg mb-2.5 tracking-tight">えぐしゅぎ・ラボ</h4>
-            <p className="text-xs text-[#7F8A7F] leading-relaxed max-w-xs">株式会社 EGS / えぐしゅぎ。大阪ミナミで、夜の街から生まれる実験的コンテンツを設計する研究室です。</p>
+            <img src="/egchara-logo.png" alt="エグキャラ" className="h-10 mb-4 inline-block" />
+            <p className="text-[13px] text-muted-foreground leading-relaxed max-w-xs">
+              自虐 × 妖精語 × 匂わせポエムで生まれた、
+              <br />
+              16 体のエグかわキャラクター。
+            </p>
           </div>
           <div>
-            <h5 className="text-[11px] text-[#7F8A7F] uppercase tracking-wider font-[var(--font-ibm-plex-mono),monospace] mb-3.5">// PRODUCTS</h5>
-            <a href="https://nomishugy.vercel.app/coming-soon" target="_blank" rel="noopener noreferrer" className="block text-[13px] mb-2 hover:text-[#7CFF7C] transition-colors">のみしゅぎ</a>
-            <a href="https://yorulog.vercel.app/waitlist" target="_blank" rel="noopener noreferrer" className="block text-[13px] mb-2 hover:text-[#7CFF7C] transition-colors">ヨルログ</a>
-            <Link href="/egtype/" className="block text-[13px] mb-2 hover:text-[#7CFF7C] transition-colors">エグタイプ診断</Link>
+            <h5 className="text-[13px] text-foreground font-display font-black mb-3.5">キャラクター</h5>
+            <Link href="/egtype/" className="block text-[14px] mb-2 text-muted-foreground hover:text-primary transition-colors">エグタイプ診断</Link>
+            <a href="/pekarin-chinchiro/" className="block text-[14px] mb-2 text-muted-foreground hover:text-pop-pink transition-colors">ぺかりんのちんちろ</a>
+            <Link href="/stamps/" className="block text-[14px] mb-2 text-muted-foreground hover:text-pop-orange transition-colors">LINE スタンプ</Link>
           </div>
+          {SHOW_PRODUCTS && (
+            <div>
+              <h5 className="text-[13px] text-foreground font-display font-black mb-3.5">プロダクト</h5>
+              <Link href="/noxa/" className="block text-[14px] mb-2 text-muted-foreground hover:text-primary transition-colors">Noxa</Link>
+              <a href="https://yorulog.vercel.app/waitlist" target="_blank" rel="noopener noreferrer" className="block text-[14px] mb-2 text-muted-foreground hover:text-accent transition-colors">ヨルログ</a>
+              <a href="https://nomishugy.vercel.app/coming-soon" target="_blank" rel="noopener noreferrer" className="block text-[14px] mb-2 text-muted-foreground hover:text-pop-orange transition-colors">のみしゅぎ</a>
+            </div>
+          )}
           <div>
-            <h5 className="text-[11px] text-[#7F8A7F] uppercase tracking-wider font-[var(--font-ibm-plex-mono),monospace] mb-3.5">// LAB</h5>
-            <a href="#experiments" className="block text-[13px] mb-2 hover:text-[#7CFF7C] transition-colors">実験一覧</a>
-            <Link href="/stamps/" className="block text-[13px] mb-2 hover:text-[#7CFF7C] transition-colors">スタンプショップ</Link>
-          </div>
-          <div>
-            <h5 className="text-[11px] text-[#7F8A7F] uppercase tracking-wider font-[var(--font-ibm-plex-mono),monospace] mb-3.5">// SOCIAL</h5>
-            <a href="https://x.com/egshugy" target="_blank" rel="noopener noreferrer" className="block text-[13px] mb-2 hover:text-[#7CFF7C] transition-colors">X / Twitter</a>
-            <a href="https://instagram.com/egshugy" target="_blank" rel="noopener noreferrer" className="block text-[13px] mb-2 hover:text-[#7CFF7C] transition-colors">Instagram</a>
-            <a href="https://tiktok.com/@diva_egshugy" target="_blank" rel="noopener noreferrer" className="block text-[13px] mb-2 hover:text-[#7CFF7C] transition-colors">TikTok</a>
+            <h5 className="text-[13px] text-foreground font-display font-black mb-3.5">フォロー</h5>
+            <a href="https://x.com/egtype_shindan" target="_blank" rel="noopener noreferrer" className="block text-[14px] mb-2 text-muted-foreground hover:text-primary transition-colors">X / Twitter</a>
+            <span className="block text-[14px] mb-2 text-muted-foreground/60">Instagram（準備中）</span>
+            <span className="block text-[14px] mb-2 text-muted-foreground/60">TikTok（準備中）</span>
           </div>
         </div>
-        <div className="pt-5 flex flex-wrap justify-between items-center gap-3 text-[11px] text-[#7F8A7F] font-[var(--font-ibm-plex-mono),monospace]">
-          <span>© 2026 株式会社 EGS · ALL RIGHTS RESERVED</span>
-          <span>// MADE IN OSAKA</span>
+        <div className="pt-5 flex flex-wrap justify-between items-center gap-3 text-[12px] text-muted-foreground font-display font-bold">
+          <span>© 2026 エグキャラ · EGSHUGY</span>
         </div>
       </footer>
     </div>

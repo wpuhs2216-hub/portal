@@ -3,80 +3,71 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * デザイン言語: エグキャラ・ポップ (Egcharacter Pop)
+ * 旧「夜の紫(Yoru Murasaki)」ダークから、ポップ明るめへ全面刷新。
+ * - クリーム背景 #FFF8F0 + ビビッド紫 #8B5CF6 を主役に、
+ *   シアン/ピンク/イエロー/オレンジ/グリーンの多色ポップアクセント。
+ * - 見出しは Fredoka(ラテン) + Noto Sans JP Black、本文は Noto Sans JP。
+ * - エグタイプ16キャラを主役にした「エグキャラ」ブランドの世界観。
+ */
+
 :root {
-  --background: #0d0d0d;
-  --foreground: #f5f5f5;
-  --card: #1a1a1a;
-  --card-foreground: #f5f5f5;
-  --popover: #1a1a1a;
-  --popover-foreground: #f5f5f5;
-  --primary: #a855f7;
+  --background: #fff8f0;
+  --foreground: #1a1325;
+  --card: #ffffff;
+  --card-foreground: #1a1325;
+  --popover: #ffffff;
+  --popover-foreground: #1a1325;
+  --primary: #8b5cf6;
   --primary-foreground: #ffffff;
-  --secondary: #252525;
-  --secondary-foreground: #f5f5f5;
-  --muted: #252525;
-  --muted-foreground: #9ca3af;
-  --accent: #22d3ee;
-  --accent-foreground: #0d0d0d;
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: #333333;
-  --input: #333333;
-  --ring: #a855f7;
+  --secondary: #ffe8f2;
+  --secondary-foreground: #1a1325;
+  --muted: #f4eefb;
+  --muted-foreground: #6b5b85;
+  --accent: #06b6d4;
+  --accent-foreground: #ffffff;
+  --destructive: #ff4d6d;
+  --destructive-foreground: #ffffff;
+  --border: #ece0f7;
+  --input: #ece0f7;
+  --ring: #8b5cf6;
+
+  /* エグキャラ・ポップ アクセント色（多色使い） */
+  --pop-purple: #a855f7;
+  --pop-cyan: #22d3ee;
+  --pop-pink: #ff5ca8;
+  --pop-yellow: #ffd43b;
+  --pop-orange: #ff9e3b;
+  --pop-green: #4ade80;
+
+  /* 危険度ランク色（S→C） */
+  --rank-s: #ff4d6d;   /* 最凶: レッドピンク */
+  --rank-a: #ff9e3b;   /* オレンジ */
+  --rank-b: #22d3ee;   /* シアン */
+  --rank-c: #4ade80;   /* グリーン */
+
+  /* 旧トークン後方互換（page.tsx 残存参照を吸収） */
+  --terminal-green: #16a34a;
+  --terminal-dim: #9a8fb0;
+  --warning: #ff9e3b;
+
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.75rem;
-  --sidebar: #1a1a1a;
-  --sidebar-foreground: #f5f5f5;
-  --sidebar-primary: #a855f7;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #252525;
-  --sidebar-accent-foreground: #f5f5f5;
-  --sidebar-border: #333333;
-  --sidebar-ring: #a855f7;
-}
-
-.dark {
-  --background: #0d0d0d;
-  --foreground: #f5f5f5;
-  --card: #1a1a1a;
-  --card-foreground: #f5f5f5;
-  --popover: #1a1a1a;
-  --popover-foreground: #f5f5f5;
-  --primary: #a855f7;
-  --primary-foreground: #ffffff;
-  --secondary: #252525;
-  --secondary-foreground: #f5f5f5;
-  --muted: #252525;
-  --muted-foreground: #9ca3af;
-  --accent: #22d3ee;
-  --accent-foreground: #0d0d0d;
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: #333333;
-  --input: #333333;
-  --ring: #a855f7;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: #1a1a1a;
-  --sidebar-foreground: #f5f5f5;
-  --sidebar-primary: #a855f7;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #252525;
-  --sidebar-accent-foreground: #f5f5f5;
-  --sidebar-border: #333333;
-  --sidebar-ring: #a855f7;
+  /* Claymorphism: 大きめ角丸 + 粘土風の二重影 + ぷにっと bounce */
+  --radius: 1.5rem;
+  --clay-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @theme inline {
-  --font-sans: var(--font-noto-sans-jp), 'Noto Sans JP', system-ui, sans-serif;
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: var(--font-dm-sans), var(--font-noto-sans-jp), 'Noto Sans JP', system-ui, sans-serif;
+  --font-display: var(--font-nunito), var(--font-noto-sans-jp), 'Noto Sans JP', system-ui, sans-serif;
+  /* mono は廃止。残存参照は丸ゴ系にフォールバックさせ「ターミナル感」を消す */
+  --font-mono: var(--font-dm-sans), var(--font-noto-sans-jp), system-ui, sans-serif;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -96,6 +87,23 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  --color-pop-purple: var(--pop-purple);
+  --color-pop-cyan: var(--pop-cyan);
+  --color-pop-pink: var(--pop-pink);
+  --color-pop-yellow: var(--pop-yellow);
+  --color-pop-orange: var(--pop-orange);
+  --color-pop-green: var(--pop-green);
+
+  --color-rank-s: var(--rank-s);
+  --color-rank-a: var(--rank-a);
+  --color-rank-b: var(--rank-b);
+  --color-rank-c: var(--rank-c);
+
+  --color-terminal-green: var(--terminal-green);
+  --color-terminal-dim: var(--terminal-dim);
+  --color-warning: var(--warning);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -105,14 +113,6 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 @layer base {
@@ -121,8 +121,124 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* ポップな淡い多色ブロブ背景 */
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(168, 85, 247, 0.12), transparent 45%),
+      radial-gradient(circle at 88% 12%, rgba(34, 211, 238, 0.12), transparent 42%),
+      radial-gradient(circle at 78% 88%, rgba(255, 92, 168, 0.10), transparent 45%),
+      radial-gradient(circle at 18% 92%, rgba(255, 212, 59, 0.10), transparent 42%);
+    background-attachment: fixed;
   }
   html {
     scroll-behavior: smooth;
   }
+}
+
+/* キラキラ装飾: Hero 用の微細パーティクル */
+@keyframes shimmer {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+.shimmer {
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* ふわふわ浮遊: キャラやバッジ用 */
+@keyframes float-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.float-bob {
+  animation: float-bob 4s ease-in-out infinite;
+}
+
+/* 無限マーキー: キャラ帯が横に流れる（中身を2連結して -50% でループ） */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 50s linear infinite;
+}
+.animate-marquee-rev {
+  animation: marquee 50s linear infinite reverse;
+}
+/* Hero 直下のキャラ帯: 自動で横に流れ、左右端はフェードアウト */
+.marquee-track {
+  animation: marquee 40s linear infinite;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee, .animate-marquee-rev, .marquee-track { animation: none; }
+}
+
+/* タグの斜めスタンプ風 */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+.wiggle {
+  animation: wiggle 3s ease-in-out infinite;
+}
+
+/* === Claymorphism: 粘土風の質感ユーティリティ === */
+
+/* 粘土カード: 外側のふくらみ影 + 内側のハイライトで「ぷっくり」感 */
+.clay {
+  box-shadow:
+    6px 6px 16px rgba(138, 79, 191, 0.16),
+    -4px -4px 12px rgba(255, 255, 255, 0.9),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.6),
+    inset -2px -2px 6px rgba(138, 79, 191, 0.08);
+}
+
+/* 押し込み（凹み）: ボタン押下・アクティブ表現 */
+.clay-pressed {
+  box-shadow:
+    inset 4px 4px 10px rgba(138, 79, 191, 0.18),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.8);
+}
+
+/* ホバーでぷにっと持ち上がる（spring 風） */
+.clay-hover {
+  transition: transform 0.25s var(--clay-bounce), box-shadow 0.25s ease-out;
+}
+.clay-hover:hover {
+  transform: translateY(-4px) scale(1.015);
+  box-shadow:
+    10px 12px 26px rgba(138, 79, 191, 0.22),
+    -5px -5px 14px rgba(255, 255, 255, 0.95);
+}
+.clay-hover:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+/* 粘土ボタン: グラデ + ぷっくり影 + 押下スクイッシュ */
+.clay-btn {
+  transition: transform 0.2s var(--clay-bounce), box-shadow 0.2s ease-out, filter 0.2s ease-out;
+  box-shadow:
+    4px 5px 12px rgba(138, 79, 191, 0.28),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.5),
+    inset -1px -2px 4px rgba(0, 0, 0, 0.12);
+}
+.clay-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  filter: saturate(1.08);
+}
+.clay-btn:active {
+  transform: translateY(1px) scale(0.96);
+  box-shadow:
+    inset 3px 3px 8px rgba(0, 0, 0, 0.18),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clay-hover, .clay-btn { transition: none; }
+  .clay-hover:hover, .clay-btn:hover { transform: none; }
 }

@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://egshugy.com/sitemap.xml
+Sitemap: https://egshugy.com/egtype/sitemap.xml

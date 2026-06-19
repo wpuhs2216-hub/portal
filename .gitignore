@@ -33,3 +33,4 @@ docs/
 .gemini/
 .env.local
 node_modules/
+.gstack/

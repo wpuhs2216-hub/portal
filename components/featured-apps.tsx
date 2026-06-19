@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronRight, Dice5, Dog, Crown, Ban, Flame, Train, Spade, Users, Heart, Shuffle, Brain, Sparkles, Skull, Hexagon } from "lucide-react"
+import { ChevronRight, Dice5, Dog, Crown, Ban, Flame, Train, Spade, Users, Heart, Shuffle, Brain, Sparkles, Skull, Hexagon, Soup } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 interface AppItem {
@@ -31,6 +31,7 @@ const categories: AppCategory[] = [
       { name: "ブラックジャック", icon: Spade, color: "from-indigo-500 to-violet-500", href: "/blackjack/", comingSoon: false },
       { name: "パーティー", icon: Users, color: "from-violet-500 to-fuchsia-500", href: "/party/", comingSoon: false },
       { name: "6ボールパズル", icon: Hexagon, color: "from-sky-500 to-indigo-500", href: "/puzzle/", comingSoon: false },
+      { name: "えぐラーメン食堂", icon: Soup, color: "from-orange-500 to-red-500", href: "/egramen/", comingSoon: false },
     ],
   },
   {

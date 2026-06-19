@@ -24,11 +24,19 @@ async function deploy() {
     }
 
     // SFTP設定
+    // WSL パス（/mnt/c/...）を Windows ネイティブパス（C:\...）に変換
+    // どちらの環境からでも同じ .env.local を共有できるようにする
+    const sftpKeyPath = process.platform === 'win32'
+      ? process.env.SFTP_PRIVATE_KEY_PATH
+          .replace(/^\/mnt\/([a-z])\//i, (_, d) => `${d.toUpperCase()}:\\`)
+          .replace(/\//g, '\\')
+      : process.env.SFTP_PRIVATE_KEY_PATH;
+
     const config = {
       host: process.env.SFTP_HOST,
       port: parseInt(process.env.SFTP_PORT),
       username: process.env.SFTP_USER,
-      privateKey: fs.readFileSync(process.env.SFTP_PRIVATE_KEY_PATH),
+      privateKey: fs.readFileSync(sftpKeyPath),
     };
 
     const remotePath = process.env.SFTP_REMOTE_PATH;
